@@ -1,0 +1,42 @@
+# -*- coding:utf-8 -*-
+import urllib
+import httplib
+import re
+import time
+import sys
+strTime=time.strftime('%m%d_%H%M%S',time.localtime(time.time()))
+
+filename = 'rtts'+strTime+'.txt'
+
+requrl = r"http://www.nitrafficindex.com/traffic/getRoadIndex.do"
+headerdata = {
+'Host':'www.nitrafficindex.com',
+'Accept':'application/json, text/javascript, */*',
+'Accept-Encoding':'gzip, deflate',
+'Accept-Language':'zh-CN',
+'Connection':'keep-alive',
+'Content-Length':'55',
+'Content-Type':'application/x-www-form-urlencoded',
+'Cookie':'JSESSIONID=307B88848083A3C39042876FCB8CE68E',
+'DNT':'1',
+'Origin':'http://www.nitrafficindex.com',
+'Referer':'http://www.nitrafficindex.com/trafficIndexAnalysis.html'
+}
+for page in range(1,10):
+    test_data = {'areaCode':'420100','roadLevel':'1,2,3,4','page':'0'+str(page),'rows':'50'}
+    test_data_urlencode = urllib.urlencode(test_data)
+
+    conn = httplib.HTTPConnection("www.nitrafficindex.com")
+
+    conn.request(method="POST",url=requrl,body=test_data_urlencode,headers = headerdata) 
+
+    response = conn.getresponse()
+    res= response.read()
+    txtfile = open(filename, "a")
+    it = re.finditer(r'name":"(.*?)"',res)
+    it2 = re.finditer(r'cIndex":"(.*?)"',res)
+    for match in it: 
+        txtfile.write(match.group(1)+'\t'+it2.next().group(1)+'\n')
+        
+print ' the file has been saved as ',txtfile.name
+txtfile.close()
